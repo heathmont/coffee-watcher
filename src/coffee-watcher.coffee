@@ -39,28 +39,28 @@ usage = "Watch a directory and recompile .coffee scripts if they change.\nUsage:
 program = require('commander')
 
 program
-  .version('1.5.0')
-  .usage(usage)
+	.version('1.5.0')
+	.usage(usage)
 
-  .option('-d, --directory <path>',
-          'Specify which directory to scan. [Default: .]')
+	.option('-d, --directory <path>',
+	'Specify which directory to scan. [Default: .]')
 
-  .option('-p, --prefix <type>',
-          'Which prefix should the compiled files have? Default is script.coffee will be compiled to .coffee.script.js.')
+	.option('-p, --prefix <type>',
+	'Which prefix should the compiled files have? Default is script.coffee will be compiled to .coffee.script.js.')
 
-  .option('-n, --noprefix',
-          "Don't use a prefix. script.coffee will be compiled to script.js. Not the default option!")
+	.option('-n, --noprefix',
+	"Don't use a prefix. script.coffee will be compiled to script.js. Not the default option!")
 
-  .parse(process.argv)
+	.parse(process.argv)
 
 # Set defaults
 program.directory = program.directory or '.'
 
 if program.prefix == undefined or program.prefix == true
-    program.prefix = '.coffee.'
+	program.prefix = '.coffee.'
 
 if program.noprefix
-    program.prefix = ''
+	program.prefix = ''
 
 # Print status info
 require('util').puts("Compiling files in `#{program.directory}`. The prefix is `#{program.prefix}`...")
@@ -74,7 +74,7 @@ watcher_lib = require 'watcher_lib'
 # Searches through a directory structure for *.coffee files using `find`.
 # For each .coffee file it runs `compileIfNeeded` to compile the file if it's modified.
 findCoffeeFiles = (dir) ->
-    watcher_lib.findFiles('*.coffee', dir, compileIfNeeded)
+	watcher_lib.findFiles('*.coffee', dir, compileIfNeeded)
 
 
 # Keeps a track of modified times for .coffee files in a in-memory object,
@@ -83,13 +83,16 @@ findCoffeeFiles = (dir) ->
 # When starting the script all files will be recompiled.
 WATCHED_FILES = {}
 compileIfNeeded = (file) ->
-    watcher_lib.compileIfNeeded(WATCHED_FILES, file, compileCoffeeScript)
+	watcher_lib.compileIfNeeded(WATCHED_FILES, file, compileCoffeeScript)
 
 
 # Compiles a file using `coffee -p`. Compilation errors are printed out to stdout.
 compileCoffeeScript = (file) ->
-    fnGetOutputFile = (file) -> file.replace(/([^\/\\]+)\.coffee/, "#{program.prefix}$1.src.js")
-    watcher_lib.compileFile("coffee -p #{ file }", file, fnGetOutputFile)
+	fnGetOutputFile = (file) ->
+		outFile = file.replace(/([^\/\\]+)\.coffee/, "#{program.prefix}$1.src.js")
+		require('util').puts("Compiling #{file} to #{outFile}")
+		outFile
+	watcher_lib.compileFile("coffee -p #{ file }", file, fnGetOutputFile)
 
 
 # Starts a poller that polls each second in a directory that's
