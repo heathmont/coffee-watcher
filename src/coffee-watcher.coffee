@@ -31,35 +31,37 @@
 # Specify the command line arguments for the script (using commander)
 usage = "Watch a directory and recompile .coffee scripts if they change.\nUsage: coffee-watcher -o [output directory] -d [source directory]."
 
-program = require 'commander'
-mkdirp = require 'mkdirp'
+specs = require('optimist')
+        .usage(usage)
+
+        .default('d', '.')
+        .describe('d', 'Specify which directory to scan.')
+
+        .default('o', './')
+        .describe('o', 'Output directory. Default is ./')
+
+        .boolean('h')
+        .describe('h', 'Prints help')
+
+
+# Handle the special -h case
+if specs.parse(process.argv).h
+    specs.showHelp()
+    process.exit()
+else
+    argv = specs.argv
+
 path = require 'path'
-
-program
-	.version('1.5.0')
-	.usage(usage)
-
-	.option('-d, --directory <path>',
-	'Specify which directory to scan. [Default: .]')
-
-	.option('-o, --output <path>',
-	'Specify which directory to put the compiled javascripts. [Default: .]')
-
-	.parse(process.argv)
-
-# Set defaults
-program.directory = program.directory or '.'
-program.output = program.output or '.'
+mkdirp = require 'mkdirp'
 
 # Use `watcher-lib`, a library that abstracts away most of the implementation details.
 # This library also makes it possible to implement any watchers (see coffee-watcher for an example).
 watcher_lib = require 'watcher_lib'
 
-
 # Searches through a directory structure for *.coffee files using `find`.
 # For each .coffee file it runs `compileIfNeeded` to compile the file if it's modified.
 findCoffeeFiles = (dir) ->
-	watcher_lib.findFiles('*.coffee', dir, compileIfNeeded)
+    watcher_lib.findFiles('*.coffee', dir, compileIfNeeded)
 
 # Keeps a track of modified times for .coffee files in a in-memory object,
 # if a .coffee file is modified it recompiles it using compileCoffeeScript.
@@ -67,19 +69,19 @@ findCoffeeFiles = (dir) ->
 # When starting the script all files will be recompiled.
 WATCHED_FILES = {}
 compileIfNeeded = (file) ->
-	watcher_lib.compileIfNeeded(WATCHED_FILES, file, compileCoffeeScript)
+    watcher_lib.compileIfNeeded(WATCHED_FILES, file, compileCoffeeScript)
 
 # Compiles a file using `coffee -p`. Compilation errors are printed out to stdout.
 compileCoffeeScript = (file) ->
-	fnGetOutputFile = (file) ->
-		relativePath = path.relative program.output, file
-		file = path.join program.output, relativePath;
-		if not path.existsSync path.dirname file
-			mkdirp.sync path.dirname file
-		file.replace(/([^\/\\]+)\.coffee/, "$1.src.js")
-	watcher_lib.compileFile("coffee -p #{ file }", file, fnGetOutputFile)
-
+    prefix = if argv.p == true then '' else argv.p
+    fnGetOutputFile = (file) ->
+        relativePath = path.relative argv.d, file
+        file = path.join argv.o, relativePath;
+        if not path.existsSync path.dirname file
+            mkdirp.sync path.dirname file
+        file.replace(/([^\/\\]+)\.coffee/, "#{prefix}$1.src.js")
+    watcher_lib.compileFile("coffee -p #{ file }", file, fnGetOutputFile)
 
 # Starts a poller that polls each second in a directory that's
 # either by default the current working directory or a directory that's passed through process arguments.
-watcher_lib.startDirectoryPoll(program.directory, findCoffeeFiles)
+watcher_lib.startDirectoryPoll(argv.d, findCoffeeFiles)
