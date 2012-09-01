@@ -79,7 +79,7 @@ compileCoffeeScript = (file) ->
         file = path.join argv.o, relativePath;
         if not path.existsSync path.dirname file
             mkdirp.sync path.dirname file
-        file.replace(/([^\/\\]+)\.coffee/, "#{prefix}$1.src.js")
+        file.replace(/([^\/\\]+)\.coffee/, "$1.src.js")
     watcher_lib.compileFile("coffee -p #{ file }", file, fnGetOutputFile)
 
 # Starts a poller that polls each second in a directory that's
