@@ -73,7 +73,7 @@ compileIfNeeded = (file) ->
 compileCoffeeScript = (file) ->
 	fnGetOutputFile = (file) ->
 		relativePath = path.relative program.output, file
-		file = path.join argv.o, relativePath;
+		file = path.join program.output, relativePath;
 		if not path.existsSync path.dirname file
 			mkdirp.sync path.dirname file
 		file.replace(/([^\/\\]+)\.coffee/, "$1.src.js")
