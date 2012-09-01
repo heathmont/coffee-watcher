@@ -33,7 +33,7 @@ usage = "Watch a directory and recompile .coffee scripts if they change.\nUsage:
 
 program = require 'commander'
 mkdirp = require 'mkdirp'
-util = require 'util'
+path = require 'path'
 
 program
 	.version('1.5.0')
@@ -76,9 +76,7 @@ compileCoffeeScript = (file) ->
 		file = path.join argv.o, relativePath;
 		if not path.existsSync path.dirname file
 			mkdirp.sync path.dirname file
-		file = file.replace(/([^\/\\]+)\.coffee/, "$1.src.js")
-		util.puts file
-		file
+		file.replace(/([^\/\\]+)\.coffee/, "$1.src.js")
 	watcher_lib.compileFile("coffee -p #{ file }", file, fnGetOutputFile)
 
 
