@@ -86,10 +86,10 @@ compileIfNeeded = (file) ->
     watcher_lib.compileIfNeeded(WATCHED_FILES, file, compileCoffeeScript)
 
 
-# Compiles a file using `coffee -bp`. Compilation errors are printed out to stdout.
+# Compiles a file using `coffee -p`. Compilation errors are printed out to stdout.
 compileCoffeeScript = (file) ->
-    fnGetOutputFile = (file) -> file.replace(/([^\/\\]+)\.coffee/, "#{program.prefix}$1.js")
-    watcher_lib.compileFile("coffee -bp #{ file }", file, fnGetOutputFile)
+    fnGetOutputFile = (file) -> file.replace(/([^\/\\]+)\.coffee/, "#{program.prefix}$1.src.js")
+    watcher_lib.compileFile("coffee -p #{ file }", file, fnGetOutputFile)
 
 
 # Starts a poller that polls each second in a directory that's
