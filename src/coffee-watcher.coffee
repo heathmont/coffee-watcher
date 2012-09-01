@@ -6,12 +6,7 @@
 # so sub-directories are handled as well.
 #
 #     Usage:
-#       coffee-watcher -p [prefix] -d [directory]
-#
-#     Options:
-#       -d  Specify which directory to scan.                                                                              [default: "."]
-#       -p  Which prefix should the compiled files have? Default is script.coffee will be compiled to .coffee.script.js.  [default: ".coffee."]
-#       -h  Prints help                                                                                                   [boolean]
+#       coffee-watcher -o [output directory] -d [source directory]
 #
 # Installing coffee-watcher is easy with [npm](http://npmjs.org/):
 #
@@ -34,10 +29,11 @@
 
 
 # Specify the command line arguments for the script (using commander)
-usage = "Watch a directory and recompile .coffee scripts if they change.\nUsage: coffee-watcher -p [prefix] -d [directory]."
+usage = "Watch a directory and recompile .coffee scripts if they change.\nUsage: coffee-watcher -o [output directory] -d [source directory]."
 
 program = require 'commander'
 mkdirp = require 'mkdirp'
+util = require 'util'
 
 program
 	.version('1.5.0')
@@ -76,11 +72,13 @@ compileIfNeeded = (file) ->
 # Compiles a file using `coffee -p`. Compilation errors are printed out to stdout.
 compileCoffeeScript = (file) ->
 	fnGetOutputFile = (file) ->
-		relativePath = path.relative argv.d, file
+		relativePath = path.relative program.output, file
 		file = path.join argv.o, relativePath;
 		if not path.existsSync path.dirname file
 			mkdirp.sync path.dirname file
-		file.replace(/([^\/\\]+)\.coffee/, "#{prefix}$1.src.js")
+		file = file.replace(/([^\/\\]+)\.coffee/, "$1.src.js")
+		util.puts file
+		file
 	watcher_lib.compileFile("coffee -p #{ file }", file, fnGetOutputFile)
 
 
