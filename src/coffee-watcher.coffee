@@ -36,7 +36,8 @@
 # Specify the command line arguments for the script (using commander)
 usage = "Watch a directory and recompile .coffee scripts if they change.\nUsage: coffee-watcher -p [prefix] -d [directory]."
 
-program = require('commander')
+program = require 'commander'
+mkdirp = require 'mkdirp'
 
 program
 	.version('1.5.0')
@@ -45,26 +46,14 @@ program
 	.option('-d, --directory <path>',
 	'Specify which directory to scan. [Default: .]')
 
-	.option('-p, --prefix <type>',
-	'Which prefix should the compiled files have? Default is script.coffee will be compiled to .coffee.script.js.')
-
-	.option('-n, --noprefix',
-	"Don't use a prefix. script.coffee will be compiled to script.js. Not the default option!")
+	.option('-o, --output <path>',
+	'Specify which directory to put the compiled javascripts. [Default: .]')
 
 	.parse(process.argv)
 
 # Set defaults
 program.directory = program.directory or '.'
-
-if program.prefix == undefined or program.prefix == true
-	program.prefix = '.coffee.'
-
-if program.noprefix
-	program.prefix = ''
-
-# Print status info
-require('util').puts("Compiling files in `#{program.directory}`. The prefix is `#{program.prefix}`...")
-
+program.output = program.output or '.'
 
 # Use `watcher-lib`, a library that abstracts away most of the implementation details.
 # This library also makes it possible to implement any watchers (see coffee-watcher for an example).
@@ -76,7 +65,6 @@ watcher_lib = require 'watcher_lib'
 findCoffeeFiles = (dir) ->
 	watcher_lib.findFiles('*.coffee', dir, compileIfNeeded)
 
-
 # Keeps a track of modified times for .coffee files in a in-memory object,
 # if a .coffee file is modified it recompiles it using compileCoffeeScript.
 #
@@ -85,13 +73,14 @@ WATCHED_FILES = {}
 compileIfNeeded = (file) ->
 	watcher_lib.compileIfNeeded(WATCHED_FILES, file, compileCoffeeScript)
 
-
 # Compiles a file using `coffee -p`. Compilation errors are printed out to stdout.
 compileCoffeeScript = (file) ->
 	fnGetOutputFile = (file) ->
-		outFile = file.replace(/([^\/\\]+)\.coffee/, "#{program.prefix}$1.src.js")
-		require('util').puts("Compiling #{file} to #{outFile}")
-		outFile
+		relativePath = path.relative argv.d, file
+		file = path.join argv.o, relativePath;
+		if not path.existsSync path.dirname file
+			mkdirp.sync path.dirname file
+		file.replace(/([^\/\\]+)\.coffee/, "#{prefix}$1.src.js")
 	watcher_lib.compileFile("coffee -p #{ file }", file, fnGetOutputFile)
 
 
