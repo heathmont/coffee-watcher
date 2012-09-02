@@ -51,6 +51,7 @@ if specs.parse(process.argv).h
 else
     argv = specs.argv
 
+fs = require 'fs'
 path = require 'path'
 mkdirp = require 'mkdirp'
 
@@ -77,7 +78,7 @@ compileCoffeeScript = (file) ->
     fnGetOutputFile = (file) ->
         relativePath = path.relative argv.d, file
         file = path.join argv.o, relativePath;
-        if not path.existsSync path.dirname file
+        if not fs.existsSync path.dirname file
             mkdirp.sync path.dirname file
         file.replace(/([^\/\\]+)\.coffee/, "$1.src.js")
     watcher_lib.compileFile("coffee -p #{ file }", file, fnGetOutputFile)
